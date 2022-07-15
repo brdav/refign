@@ -12,7 +12,7 @@
 
 </div>
 
-This repository provides the official code for the paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
+This repository provides the official code for the paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](https://arxiv.org/abs/2207.06825). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
 
 <img src="./docs/method.png" width="900"/>
 
