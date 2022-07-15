@@ -1,0 +1,10 @@
+torch==1.7.1+cu110
+torchvision==0.8.2+cu110
+torchmetrics==0.9.1
+pytorch-lightning==1.5.10
+jsonargparse[signatures]==4.3.1
+pandas==1.4.2
+kornia==0.5.8
+opencv-python==4.6.0.66
+h5py==3.7.0
+-e .

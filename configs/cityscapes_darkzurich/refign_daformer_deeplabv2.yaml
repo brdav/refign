@@ -1,0 +1,221 @@
+seed_everything: 0
+data:
+  class_path: data_modules.CombinedDataModule
+  init_args:
+    batch_size: 4
+    num_workers: 4
+    load_config:
+      train:
+        Cityscapes:
+          rcs_enabled: True
+          dims:
+            - 512
+            - 1024
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.RandomCrop
+              init_args:
+                size: 
+                  - 512
+                  - 512
+                cat_max_ratio: 0.75
+            - class_path: data_modules.transforms.RandomHorizontalFlip
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+        DarkZurich:
+          dims:
+            - 540
+            - 960
+          load_keys:
+            - image
+            - image_ref
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.RandomCrop
+              init_args:
+                size: 
+                  - 512
+                  - 512
+            - class_path: data_modules.transforms.RandomHorizontalFlip
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+      val:
+        DarkZurich:
+          dims:
+            - 540
+            - 960
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+      test:
+        DarkZurich:
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size:
+                  - 540
+                  - 960
+                img_only: True
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+        NighttimeDriving:
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size:
+                  - 540
+                  - 960
+                img_only: True
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+        BDD100kNight:
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size:
+                  - 540
+                  - 960
+                img_only: True
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+      predict:
+        DarkZurich:
+          predict_on: test
+          load_keys:
+            - image
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size:
+                  - 540
+                  - 960
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+model:
+  class_path: models.DomainAdaptationSegmentationModel
+  init_args:
+    backbone_lr_factor: 0.1
+    psweight_ignore_top: 15
+    psweight_ignore_bottom: 15
+    enable_fdist: True
+    use_refign: True
+    adapt_to_ref: True
+    gamma: 0.25
+    backbone:
+      class_path: models.backbones.ResNet
+      init_args:
+        pretrained: imagenet
+        model_type: resnet101_v1c
+        strides:
+          - 1
+          - 2
+          - 1
+          - 1
+        dilations:
+          - 1
+          - 1
+          - 2
+          - 4
+    head:
+      class_path: models.heads.DeepLabV2Head
+      init_args:
+        in_channels: 2048
+        in_index: 3
+        num_classes: 19
+    alignment_backbone:
+      class_path: models.backbones.VGG
+      init_args:
+        model_type: vgg16
+        pretrained: imagenet
+        out_indices:
+          - 2
+          - 3
+          - 4
+    alignment_head:
+      class_path: models.heads.UAWarpCHead
+      init_args:
+        in_index:
+          - 0
+          - 1
+        input_transform: multiple_select
+        estimate_uncertainty: True
+        pretrained: pretrained_models/uawarpc_megadepth.ckpt
+    loss:
+      class_path: models.losses.PixelWeightedCrossEntropyLoss
+    metrics:
+      val:
+        DarkZurich:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              compute_on_step: False
+      test:
+        DarkZurich:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              compute_on_step: False
+        NighttimeDriving:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              compute_on_step: False
+        BDD100kNight:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              compute_on_step: False
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0006
+    weight_decay: 0.01
+lr_scheduler:
+  class_path: helpers.lr_scheduler.LinearWarmupPolynomialLR
+  init_args:
+    warmup_iters: 1500
+    warmup_ratio: 0.000001
+    power: 1.0
+    max_steps: 40000
+trainer:
+  max_steps: 40000
+  check_val_every_n_epoch: 40000
+  sync_batchnorm: True
+  multiple_trainloader_mode: min_size
+  logger:
+    class_path: pytorch_lightning.loggers.TensorBoardLogger
+    init_args:
+      save_dir: lightning_logs
+      name: refign_daformer_deeplabv2_darkzurich
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.LearningRateMonitor
+    - class_path: helpers.callbacks.ValEveryNSteps
+      init_args:
+        every_n_steps: 4000
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        save_last: True

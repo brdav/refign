@@ -1,0 +1,189 @@
+seed_everything: 0
+data:
+  class_path: data_modules.CombinedDataModule
+  init_args:
+    batch_size: 6
+    num_workers: 4
+    load_config:
+      train:
+        MegaDepth:
+          store_scene_info_in_memory: True
+          exchange_images_with_proba: 0.5
+          dims: 
+            - 750
+            - 750
+          load_keys:
+            - image
+            - image_ref
+            - image_prime
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ColorJitter
+              init_args:
+                apply_keys:
+                  - image_prime
+                brightness: 0.6
+                contrast: 0.6
+                saturation: 0.6
+                hue: 0
+            - class_path: data_modules.transforms.ChannelShuffle
+              init_args:
+                apply_keys:
+                  - image_prime
+            - class_path: data_modules.transforms.RandomGaussianBlur
+              init_args:
+                apply_keys:
+                  - image_prime
+                p: 0.2
+                kernel_size: 7
+                sigma:
+                  - 0.2
+                  - 2.0
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+            - class_path: data_modules.transforms.CompositeFlow
+              init_args:
+                apply_keys:
+                  - image_prime
+                include_transforms:
+                  - hom
+                  - tps
+                  - afftps
+                random_alpha: 0.26
+                random_s: 0.45
+                random_tx: 0.25
+                random_ty: 0.25
+                random_t_hom: 0.333
+                random_t_tps: 0.333
+                random_t_tps_for_afftps: 0.08
+                parameterize_with_gaussian: False
+                add_elastic: False
+            - class_path: data_modules.transforms.CenterCrop
+              init_args:
+                size:
+                  - 520
+                  - 520
+      val:
+        MegaDepth:
+          dims:
+            - 480
+            - 720
+          load_keys:
+            - image
+            - image_ref
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+      test:
+        MegaDepth:
+          load_keys:
+            - image
+            - image_ref
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size: 480
+                img_interpolation: lanczos
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+            - class_path: data_modules.transforms.PadBottomRight
+              init_args:
+                same_shape_keys:
+                  - image
+                  - image_ref
+        RobotCarMatching:
+          load_keys:
+            - image
+            - image_ref
+          transforms:
+            - class_path: data_modules.transforms.Resize
+              init_args:
+                size: 480
+                img_interpolation: lanczos
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+            - class_path: data_modules.transforms.PadBottomRight
+              init_args:
+                same_shape_keys:
+                  - image
+                  - image_ref
+model:
+  class_path: models.AlignmentModel
+  init_args:
+    alignment_backbone:
+      class_path: models.backbones.VGG
+      init_args:
+        model_type: vgg16
+        pretrained: imagenet
+        out_indices:
+          - 2
+          - 3
+          - 4
+    alignment_head:
+      class_path: models.heads.UAWarpCHead
+      init_args:
+        in_index:
+          - 0
+          - 1
+        input_transform: multiple_select
+        estimate_uncertainty: True
+        iterative_refinement: True
+    selfsupervised_loss:
+      class_path: models.losses.MultiScaleFlowLoss
+      init_args:
+        loss_type: HuberLoss
+    unsupervised_loss:
+      class_path: models.losses.WBipathLoss
+      init_args:
+        objective: multi_scale_flow_loss
+        loss_type: HuberLoss
+    metrics:
+      val:
+        MegaDepth:
+          - class_path: helpers.metrics.SparseEPE
+            init_args:
+              compute_on_step: False
+              uncertainty_estimation: True
+      test:
+        MegaDepth:
+          - class_path: helpers.metrics.SparseEPE
+            init_args:
+              compute_on_step: False
+              uncertainty_estimation: True
+        RobotCarMatching:
+          - class_path: helpers.metrics.SparseEPE
+            init_args:
+              compute_on_step: False
+              uncertainty_estimation: True
+optimizer:
+  class_path: torch.optim.Adam
+  init_args:
+    lr: 0.0001
+    weight_decay: 0.0004
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.MultiStepLR
+  init_args:
+    milestones: 
+      - 250000
+      - 325000
+    gamma: 0.5
+trainer:
+  max_steps: 400000
+  sync_batchnorm: True
+  check_val_every_n_epoch: 400000
+  logger:
+    class_path: pytorch_lightning.loggers.TensorBoardLogger
+    init_args:
+      save_dir: lightning_logs
+      name: uawarpc_megadepth_stage2
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.LearningRateMonitor
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        save_last: True
+    - class_path: helpers.callbacks.ValEveryNSteps
+      init_args:
+        every_n_steps: 5000

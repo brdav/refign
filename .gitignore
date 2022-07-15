@@ -19,3 +19,6 @@ build.ninja
 
 # pytorch_lightning
 lightning_logs/
+
+# pretrained models
+pretrained_models/

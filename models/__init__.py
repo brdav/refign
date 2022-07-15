@@ -1,0 +1,2 @@
+from .alignment_model import AlignmentModel
+from .segmentation_model import DomainAdaptationSegmentationModel

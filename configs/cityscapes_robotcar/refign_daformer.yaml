@@ -1,0 +1,185 @@
+seed_everything: 0
+data:
+  class_path: data_modules.CombinedDataModule
+  init_args:
+    batch_size: 6
+    num_workers: 4
+    ignore_every_second_semantic_training_batch: True
+    load_config:
+      train:
+        Cityscapes:
+          rcs_enabled: True
+          dims:
+            - 512
+            - 1024
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.RandomCrop
+              init_args:
+                size: 
+                  - 512
+                  - 512
+                cat_max_ratio: 0.75
+            - class_path: data_modules.transforms.RandomHorizontalFlip
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+        RobotCar:
+          - load_keys:
+              - image
+              - semantic
+            dims:
+              - 720
+              - 720
+            transforms:
+              - class_path: data_modules.transforms.RandomRotation
+                init_args:
+                  degrees: 10
+              - class_path: data_modules.transforms.ToTensor
+              - class_path: data_modules.transforms.RandomCrop
+                init_args:
+                  size: 
+                    - 512
+                    - 512
+                cat_max_ratio: 0.75
+              - class_path: data_modules.transforms.ColorJitter
+                init_args:
+                  brightness: 0.25
+                  contrast: 0.25
+                  saturation: 0.25
+                  hue: 0.1
+              - class_path: data_modules.transforms.RandomHorizontalFlip
+              - class_path: data_modules.transforms.ConvertImageDtype
+              - class_path: data_modules.transforms.Normalize
+          - load_keys:
+              - image
+              - image_ref
+            dims:
+              - 720
+              - 720
+            transforms:
+              - class_path: data_modules.transforms.ToTensor
+              - class_path: data_modules.transforms.RandomCrop
+                init_args:
+                  size: 
+                    - 512
+                    - 512
+              - class_path: data_modules.transforms.RandomHorizontalFlip
+              - class_path: data_modules.transforms.ConvertImageDtype
+              - class_path: data_modules.transforms.Normalize
+      val:
+        RobotCar:
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+      test:
+        RobotCar:
+          load_keys:
+            - image
+            - semantic
+          transforms:
+            - class_path: data_modules.transforms.ToTensor
+            - class_path: data_modules.transforms.ConvertImageDtype
+            - class_path: data_modules.transforms.Normalize
+model:
+  class_path: models.DomainAdaptationSegmentationModel
+  init_args:
+    backbone_lr_factor: 0.1
+    psweight_ignore_top: 15
+    psweight_ignore_bottom: 15
+    enable_fdist: True
+    use_refign: True
+    adapt_to_ref: True
+    gamma: 0.25
+    backbone:
+      class_path: models.backbones.MixVisionTransformer
+      init_args:
+        model_type: mit_b5
+        pretrained: imagenet
+    head:
+      class_path: models.heads.DAFormerHead
+      init_args:
+        in_channels:
+          - 64
+          - 128
+          - 320
+          - 512
+        in_index:
+          - 0
+          - 1
+          - 2
+          - 3
+        num_classes: 19
+        input_transform: multiple_select
+    alignment_backbone:
+      class_path: models.backbones.VGG
+      init_args:
+        model_type: vgg16
+        pretrained: imagenet
+        out_indices:
+          - 2
+          - 3
+          - 4
+    alignment_head:
+      class_path: models.heads.UAWarpCHead
+      init_args:
+        in_index:
+          - 0
+          - 1
+        input_transform: multiple_select
+        estimate_uncertainty: True
+        pretrained: pretrained_models/uawarpc_megadepth.ckpt
+    loss:
+      class_path: models.losses.PixelWeightedCrossEntropyLoss
+    metrics:
+      val:
+        RobotCar:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              over_present_classes: True
+              compute_on_step: False
+      test:
+        RobotCar:
+          - class_path: helpers.metrics.IoU
+            init_args:
+              ignore_index: 255
+              num_classes: 19
+              over_present_classes: True
+              compute_on_step: False
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0006
+    weight_decay: 0.01
+lr_scheduler:
+  class_path: helpers.lr_scheduler.LinearWarmupPolynomialLR
+  init_args:
+    warmup_iters: 1500
+    warmup_ratio: 0.000001
+    power: 1.0
+    max_steps: 20000
+trainer:
+  max_steps: 20000
+  check_val_every_n_epoch: 20000
+  sync_batchnorm: True
+  logger:
+    class_path: pytorch_lightning.loggers.TensorBoardLogger
+    init_args:
+      save_dir: lightning_logs
+      name: refign_daformer_robotcar
+  callbacks:
+    - class_path: pytorch_lightning.callbacks.LearningRateMonitor
+    - class_path: helpers.callbacks.ValEveryNSteps
+      init_args:
+        every_n_steps: 2000
+    - class_path: pytorch_lightning.callbacks.ModelCheckpoint
+      init_args:
+        save_last: True
