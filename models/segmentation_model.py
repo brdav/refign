@@ -514,8 +514,8 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
 
     def train(self, mode=True):
         super().train(mode=mode)
-        if self.alignment_backbone is not None:
-            self.alignment_backbone.eval()
+        for m in filter(None, [self.alignment_backbone, self.alignment_head]):
+            m.eval()
         for m in filter(None, [self.m_backbone, self.m_head]):
             if isinstance(m, nn.modules.dropout._DropoutNd):
                 m.training = False
