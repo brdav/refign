@@ -93,7 +93,7 @@ Before running the code, download and extract the corresponding datasets to the 
 </details>
 
 <details>
-  <summary>DarkZurich</summary>
+  <summary>Dark Zurich</summary>
   
   Download Dark_Zurich_train_anon.zip, Dark_Zurich_val_anon.zip, and Dark_Zurich_test_anon_withoutGt.zip from [here](https://www.trace.ethz.ch/publications/2019/GCMA_UIoU/) and extract them to `$DATA_DIR/DarkZurich`.
 
@@ -113,7 +113,7 @@ Before running the code, download and extract the corresponding datasets to the 
 </details>
 
 <details>
-  <summary>NighttimeDriving</summary>
+  <summary>Nighttime Driving</summary>
   
   Download NighttimeDrivingTest.zip from [here](http://people.ee.ethz.ch/~daid/NightDriving/) and extract it to `$DATA_DIR/NighttimeDrivingTest`.
 
@@ -229,6 +229,13 @@ We provide pretrained models of both UDA and alignment networks.
 - [UAWarpC](https://data.vision.ee.ethz.ch/brdavid/refign/uawarpc_megadepth.ckpt)  -- MegaDepth
 
 Note that the UAWarpC checkpoint is needed to train Refign. To avoid config file edits, save it to `./pretrained_models/`.
+
+### Qualitative Refign Predictions
+
+To facilitate qualitative comparisons, validation set predictions of Refign can be directly downloaded:
+- [Refign on ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC.zip)
+- [Refign on Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich.zip)
+- [Refign on RobotCar val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_RobotCar.zip)
 
 ### Refign Training
 

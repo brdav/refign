@@ -12,7 +12,7 @@ from helpers.dacs_transforms import get_class_masks, strong_transform
 from helpers.matching_utils import (
     estimate_probability_of_confidence_interval_of_mixture_density, warp)
 from helpers.metrics import MyMetricCollection
-from helpers.utils import resolve_ckpt_dir
+from helpers.utils import colorize_mask, resolve_ckpt_dir
 from PIL import Image
 from pytorch_lightning.utilities.cli import MODEL_REGISTRY, instantiate_class
 
@@ -215,8 +215,11 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         dataset_name = self.trainer.datamodule.predict_on[dataloader_idx]
         save_dir = os.path.join(os.path.dirname(
             resolve_ckpt_dir(self.trainer)), 'preds', dataset_name)
+        col_save_dir = os.path.join(os.path.dirname(
+            resolve_ckpt_dir(self.trainer)), 'color_preds', dataset_name)
         if self.trainer.is_global_zero:
             os.makedirs(save_dir, exist_ok=True)
+            os.makedirs(col_save_dir, exist_ok=True)
         img_names = batch['filename']
         x = batch['image']
         orig_size = self.trainer.datamodule.predict_ds[dataloader_idx].orig_dims
@@ -226,6 +229,8 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
             arr = pred.cpu().numpy()
             image = Image.fromarray(arr.astype(np.uint8))
             image.save(os.path.join(save_dir, im_name))
+            col_image = colorize_mask(image)
+            col_image.save(os.path.join(col_save_dir, im_name))
 
     def forward(self, x, out_size=None, return_feats=False):
         feats = self.backbone(x)
