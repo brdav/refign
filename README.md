@@ -5,6 +5,7 @@
 # Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions
 
 [![Paper](http://img.shields.io/badge/paper-arxiv.2207.06825-B31B1B.svg)](https://arxiv.org/abs/2207.06825)
+[![Conference](http://img.shields.io/badge/WACV-2023-4b44ce.svg)](https://wacv2023.thecvf.com/) 
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/refign-align-and-refine-for-adaptation-of/domain-adaptation-on-cityscapes-to-acdc)](https://paperswithcode.com/sota/domain-adaptation-on-cityscapes-to-acdc?p=refign-align-and-refine-for-adaptation-of)
 
@@ -12,7 +13,7 @@
 
 </div>
 
-This repository provides the official code for the paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](https://arxiv.org/abs/2207.06825). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
+This repository provides the official code for the WACV 2023 paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](https://arxiv.org/abs/2207.06825). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
 
 <img src="./docs/method.png" width="900"/>
 
@@ -302,11 +303,11 @@ Check the `training_step` method in `models/segmentation_model.py`. You will nee
 
 If you find this code useful in your research, please consider citing the paper:
 ```bibtex
-@article{bruggemann2022refign,
+@inproceedings{bruggemann2022refign,
   title={Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions},
   author={Bruggemann, David and Sakaridis, Christos and Truong, Prune and Van Gool, Luc},
-  journal={arXiv preprint arXiv:2207.06825},
-  year={2022}
+  booktitle={WACV},
+  year={2023}
 }
 ```
 
