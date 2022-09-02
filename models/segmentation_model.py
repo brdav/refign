@@ -12,11 +12,12 @@ from helpers.dacs_transforms import get_class_masks, strong_transform
 from helpers.matching_utils import (
     estimate_probability_of_confidence_interval_of_mixture_density, warp)
 from helpers.metrics import MyMetricCollection
-from helpers.utils import colorize_mask, resolve_ckpt_dir
+from helpers.utils import colorize_mask, crop, resolve_ckpt_dir
 from PIL import Image
 from pytorch_lightning.utilities.cli import MODEL_REGISTRY, instantiate_class
 
 from .heads.base import BaseHead
+from .hrda import hrda_backbone, hrda_head
 from .modules import DropPath
 
 
@@ -40,8 +41,8 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
                  disable_P: bool = False,
                  ema_momentum: float = 0.999,
                  pseudo_label_threshold: float = 0.968,
-                 psweight_ignore_top: int = 15,
-                 psweight_ignore_bottom: int = 120,
+                 psweight_ignore_top: int = 0,
+                 psweight_ignore_bottom: int = 0,
                  enable_fdist: bool = True,
                  fdist_lambda: float = 0.005,
                  fdist_classes: list = [6, 7, 11, 12, 13, 14, 15, 16, 17, 18],
@@ -49,6 +50,14 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
                  color_jitter_s: float = 0.2,
                  color_jitter_p: float = 0.2,
                  blur: bool = True,
+                 use_hrda: bool = False,
+                 hrda_output_stride: int = 4,
+                 hrda_scale_attention: Optional[nn.Module] = None,
+                 hr_loss_weight: float = 0.1,
+                 use_slide_inference: bool = False,
+                 inference_batched_slide: bool = True,
+                 inference_crop_size: list = [1080, 1080],
+                 inference_stride: list = [420, 420],
                  pretrained: Optional[str] = None,
                  ):
         super().__init__()
@@ -57,6 +66,7 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         # segmentation
         self.backbone = backbone
         self.head = head
+        self.hrda_scale_attention = hrda_scale_attention if use_hrda else None
         # alignment
         self.alignment_backbone = alignment_backbone
         self.alignment_head = alignment_head
@@ -66,6 +76,7 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         # ema
         self.m_backbone = copy.deepcopy(self.backbone)
         self.m_head = copy.deepcopy(self.head)
+        self.m_hrda_scale_attention = copy.deepcopy(self.hrda_scale_attention)
         for param in self.ema_parameters():
             param.requires_grad = False
         # imnet
@@ -110,6 +121,23 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         self.color_jitter_s = color_jitter_s
         self.color_jitter_p = color_jitter_p
         self.blur = blur
+        self.use_hrda = use_hrda
+        if self.use_hrda:
+            # apply hrda decorators
+            self.backbone.forward = hrda_backbone(
+                self.backbone, hrda_output_stride)(self.backbone.forward)
+            self.head.forward = hrda_head(
+                self.head, self.hrda_scale_attention, hrda_output_stride)(self.head.forward)
+            self.m_backbone.forward = hrda_backbone(
+                self.m_backbone, hrda_output_stride, is_teacher=True)(self.m_backbone.forward)
+            self.m_head.forward = hrda_head(
+                self.m_head, self.m_hrda_scale_attention, hrda_output_stride,
+                is_teacher=True)(self.m_head.forward)
+        self.hr_loss_weight = hr_loss_weight
+        self.use_slide_inference = use_slide_inference
+        self.inference_batched_slide = inference_batched_slide
+        self.inference_crop_size = inference_crop_size
+        self.inference_stride = inference_stride
         self.automatic_optimization = False
 
         #### LOAD WEIGHTS ####
@@ -126,10 +154,29 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         # SOURCE
         #
         images_src, gt_src = batch['image_src'], batch['semantic_src']
-        logits_src, feats_src = self.forward(images_src, return_feats=True)
-        loss_src = self.loss(logits_src, gt_src)
+        feats_src = self.backbone(images_src)
+        logits_src = self.head(feats_src)
+        if self.use_hrda:
+            # feats_src are lr feats
+            feats_src = feats_src[0]
+            logits_src, hr_logits_src, crop_box_src = logits_src
+            logits_src = nn.functional.interpolate(
+                logits_src, images_src.shape[-2:], mode='bilinear', align_corners=False)
+            cropped_gt_src = crop(gt_src, crop_box_src)
+            loss_src = (1 - self.hr_loss_weight) * self.loss(logits_src, gt_src) + \
+                self.hr_loss_weight * self.loss(hr_logits_src, cropped_gt_src)
+        else:
+            logits_src = nn.functional.interpolate(
+                logits_src, images_src.shape[-2:], mode='bilinear', align_corners=False)
+            loss_src = self.loss(logits_src, gt_src)
         self.log("train_loss_src", loss_src)
         self.manual_backward(loss_src, retain_graph=self.enable_fdist)
+
+        # free graph
+        del loss_src
+        del logits_src
+        if self.use_hrda:
+            del hr_logits_src
 
         # ImageNet feature distance
         if self.enable_fdist:
@@ -137,6 +184,9 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
                 images_src, gt_src, feats_src)
             self.log("train_loss_featdist_src", loss_featdist_src)
             self.manual_backward(loss_featdist_src)
+
+            # free graph
+            del loss_featdist_src
 
         #
         # TARGET
@@ -174,11 +224,30 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
                 images_trg, m_probs_trg, images_src, gt_src)
 
         # Train on mixed images
-        mixed_pred = self.forward(mixed_img)
-        mixed_loss = self.loss(mixed_pred, mixed_lbl,
-                               pixel_weight=mixed_weight)
+        mixed_pred = self.head(self.backbone(mixed_img))
+        if self.use_hrda:
+            mixed_pred, hr_mixed_pred, crop_box_mixed = mixed_pred
+            mixed_pred = nn.functional.interpolate(
+                mixed_pred, mixed_img.shape[-2:], mode='bilinear', align_corners=False)
+            cropped_mixed_lbl = crop(mixed_lbl, crop_box_mixed)
+            cropped_mixed_weight = crop(mixed_weight, crop_box_mixed)
+            mixed_loss = (1 - self.hr_loss_weight) * self.loss(mixed_pred, mixed_lbl, pixel_weight=mixed_weight) + \
+                self.hr_loss_weight * \
+                self.loss(hr_mixed_pred, cropped_mixed_lbl,
+                          pixel_weight=cropped_mixed_weight)
+        else:
+            mixed_pred = nn.functional.interpolate(
+                mixed_pred, mixed_img.shape[-2:], mode='bilinear', align_corners=False)
+            mixed_loss = self.loss(mixed_pred, mixed_lbl,
+                                   pixel_weight=mixed_weight)
         self.log("train_loss_uda_trg", mixed_loss)
         self.manual_backward(mixed_loss)
+
+        # free graph
+        del mixed_loss
+        del mixed_pred
+        if self.use_hrda:
+            del hr_mixed_pred
 
         opt.step()
         sch.step()
@@ -232,17 +301,77 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
             col_image = colorize_mask(image)
             col_image.save(os.path.join(col_save_dir, im_name))
 
-    def forward(self, x, out_size=None, return_feats=False):
-        feats = self.backbone(x)
-        logits = self.head(feats)
-        logits = nn.functional.interpolate(
-            logits, x.shape[-2:], mode='bilinear', align_corners=False)
+    def forward(self, x, out_size=None):
+        if self.use_slide_inference:
+            logits = self.slide_inference(x)
+        else:
+            logits = self.whole_inference(x)
         if out_size is not None:
             logits = nn.functional.interpolate(
                 logits, size=out_size, mode='bilinear', align_corners=False)
-        if return_feats:
-            return logits, feats
         return logits
+
+    def whole_inference(self, x):
+        logits = self.head(self.backbone(x))
+        logits = nn.functional.interpolate(
+            logits, x.shape[-2:], mode='bilinear', align_corners=False)
+        return logits
+
+    def slide_inference(self, img):
+        """Inference by sliding-window with overlap.
+        If h_crop > h_img or w_crop > w_img, the small patch will be used to
+        decode without padding.
+        """
+        h_stride, w_stride = self.inference_stride
+        h_crop, w_crop = self.inference_crop_size
+        batched_slide = self.inference_batched_slide
+        batch_size, _, h_img, w_img = img.size()
+        num_classes = self.head.num_classes
+        h_grids = max(h_img - h_crop + h_stride - 1, 0) // h_stride + 1
+        w_grids = max(w_img - w_crop + w_stride - 1, 0) // w_stride + 1
+        preds = img.new_zeros((batch_size, num_classes, h_img, w_img))
+        count_mat = img.new_zeros((batch_size, 1, h_img, w_img))
+        if batched_slide:
+            crop_imgs, crops = [], []
+            for h_idx in range(h_grids):
+                for w_idx in range(w_grids):
+                    y1 = h_idx * h_stride
+                    x1 = w_idx * w_stride
+                    y2 = min(y1 + h_crop, h_img)
+                    x2 = min(x1 + w_crop, w_img)
+                    y1 = max(y2 - h_crop, 0)
+                    x1 = max(x2 - w_crop, 0)
+                    crop_img = img[:, :, y1:y2, x1:x2]
+                    crop_imgs.append(crop_img)
+                    crops.append((y1, y2, x1, x2))
+            crop_imgs = torch.cat(crop_imgs, dim=0)
+            crop_seg_logits = self.whole_inference(crop_imgs)
+            for i in range(len(crops)):
+                y1, y2, x1, x2 = crops[i]
+                crop_seg_logit = \
+                    crop_seg_logits[i * batch_size:(i + 1) * batch_size]
+                preds += nn.functional.pad(crop_seg_logit,
+                                           (int(x1), int(preds.shape[3] - x2), int(y1),
+                                            int(preds.shape[2] - y2)))
+                count_mat[:, :, y1:y2, x1:x2] += 1
+        else:
+            for h_idx in range(h_grids):
+                for w_idx in range(w_grids):
+                    y1 = h_idx * h_stride
+                    x1 = w_idx * w_stride
+                    y2 = min(y1 + h_crop, h_img)
+                    x2 = min(x1 + w_crop, w_img)
+                    y1 = max(y2 - h_crop, 0)
+                    x1 = max(x2 - w_crop, 0)
+                    crop_img = img[:, :, y1:y2, x1:x2]
+                    crop_seg_logit = self.whole_inference(crop_img)
+                    preds += nn.functional.pad(crop_seg_logit,
+                                               (int(x1), int(preds.shape[3] - x2), int(y1),
+                                                int(preds.shape[2] - y2)))
+                    count_mat[:, :, y1:y2, x1:x2] += 1
+        assert (count_mat == 0).sum() == 0
+        preds = preds / count_mat
+        return preds
 
     def configure_optimizers(self):
         optimizer = instantiate_class(
@@ -440,6 +569,9 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
     def calc_feat_dist(self, img, gt, feat=None):
         assert self.enable_fdist
         with torch.no_grad():
+            if self.use_hrda:
+                img = nn.functional.interpolate(
+                    img, scale_factor=0.5, mode='bilinear', align_corners=False)
             feat_imnet = self.imnet_backbone(img)
             if isinstance(feat_imnet, Sequence):
                 feat_imnet = [f.detach() for f in feat_imnet]
@@ -497,12 +629,12 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         return out
 
     def ema_parameters(self):
-        for m in filter(None, [self.m_backbone, self.m_head]):
+        for m in filter(None, [self.m_backbone, self.m_head, self.m_hrda_scale_attention]):
             for p in m.parameters():
                 yield p
 
     def live_parameters(self):
-        for m in filter(None, [self.backbone, self.head]):
+        for m in filter(None, [self.backbone, self.head, self.hrda_scale_attention]):
             for p in m.parameters():
                 yield p
 
@@ -521,7 +653,7 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         super().train(mode=mode)
         for m in filter(None, [self.alignment_backbone, self.alignment_head]):
             m.eval()
-        for m in filter(None, [self.m_backbone, self.m_head]):
+        for m in filter(None, [self.m_backbone, self.m_head, self.m_hrda_scale_attention]):
             if isinstance(m, nn.modules.dropout._DropoutNd):
                 m.training = False
             if isinstance(m, DropPath):

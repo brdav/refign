@@ -87,8 +87,6 @@ model:
   class_path: models.DomainAdaptationSegmentationModel
   init_args:
     backbone_lr_factor: 0.1
-    psweight_ignore_top: 15
-    psweight_ignore_bottom: 15
     enable_fdist: True
     use_refign: True
     adapt_to_ref: False

@@ -89,30 +89,29 @@ model:
     backbone_lr_factor: 0.1
     enable_fdist: True
     use_refign: True
-    adapt_to_ref: False
-    gamma: 0
-    disable_M: True
-    use_align: False
+    adapt_to_ref: True
+    gamma: 0.25
     backbone:
-      class_path: models.backbones.MixVisionTransformer
+      class_path: models.backbones.ResNet
       init_args:
-        model_type: mit_b5
         pretrained: imagenet
-    head:
-      class_path: models.heads.DAFormerHead
-      init_args:
-        in_channels:
-          - 64
-          - 128
-          - 320
-          - 512
-        in_index:
-          - 0
+        model_type: resnet101_v1c
+        strides:
           - 1
           - 2
-          - 3
+          - 1
+          - 1
+        dilations:
+          - 1
+          - 1
+          - 2
+          - 4
+    head:
+      class_path: models.heads.DeepLabV2Head
+      init_args:
+        in_channels: 2048
+        in_index: 3
         num_classes: 19
-        input_transform: multiple_select
     alignment_backbone:
       class_path: models.backbones.VGG
       init_args:
@@ -169,7 +168,7 @@ trainer:
     class_path: pytorch_lightning.loggers.TensorBoardLogger
     init_args:
       save_dir: lightning_logs
-      name: refign_daformer_acdc_ablations_row1
+      name: refign_deeplabv2_acdc
   callbacks:
     - class_path: pytorch_lightning.callbacks.LearningRateMonitor
     - class_path: helpers.callbacks.ValEveryNSteps

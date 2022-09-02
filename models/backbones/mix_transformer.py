@@ -18,7 +18,14 @@ import torch.nn as nn
 from ..modules import DropPath
 
 model_urls = {
-    "mit_b5": "https://data.vision.ee.ethz.ch/brdavid/refign/mit_b5.pth",
+    "imagenet": {
+        # same weights as provided by official SegFormer repo: https://github.com/NVlabs/SegFormer
+        "mit_b5": "https://data.vision.ee.ethz.ch/brdavid/refign/mit_b5.pth",
+    },
+    "cityscapes": {
+        # same weights as provided by official SegFormer repo: https://github.com/NVlabs/SegFormer
+        "mit_b5": "https://data.vision.ee.ethz.ch/brdavid/refign/segformer.b5.1024x1024.city.160k.pth",
+    }
 }
 
 
@@ -442,7 +449,9 @@ class MixVisionTransformer(nn.Module):
                 self._init_weights(m)
         elif isinstance(pretrained, str):
             if pretrained == 'imagenet':
-                pretrained = model_urls[self.model_type]
+                pretrained = model_urls['imagenet'][self.model_type]
+            elif pretrained == 'cityscapes':
+                pretrained = model_urls['cityscapes'][self.model_type]
 
             if os.path.exists(pretrained):
                 checkpoint = torch.load(pretrained, map_location='cpu')

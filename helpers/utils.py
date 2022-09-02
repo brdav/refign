@@ -40,3 +40,17 @@ def colorize_mask(mask):
     new_mask = mask.convert('P')
     new_mask.putpalette(palette)
     return new_mask
+
+
+def crop(img, crop_bbox):
+    """Crop from ``img``"""
+    crop_y1, crop_y2, crop_x1, crop_x2 = crop_bbox
+    if img.dim() == 4:
+        img = img[:, :, crop_y1:crop_y2, crop_x1:crop_x2]
+    elif img.dim() == 3:
+        img = img[:, crop_y1:crop_y2, crop_x1:crop_x2]
+    elif img.dim() == 2:
+        img = img[crop_y1:crop_y2, crop_x1:crop_x2]
+    else:
+        raise NotImplementedError(img.dim())
+    return img

@@ -4,7 +4,6 @@ from typing import Optional
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import torchmetrics
 from helpers.matching_utils import \
     estimate_probability_of_confidence_interval_of_mixture_density
 from helpers.metrics import MyMetricCollection

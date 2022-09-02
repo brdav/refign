@@ -15,6 +15,8 @@
 
 This repository provides the official code for the WACV 2023 paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](https://arxiv.org/abs/2207.06825). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
 
+🔥 Applied on top of [HRDA](https://github.com/lhoyer/HRDA), Refign ranks #1 on both the [ACDC leaderboard](https://acdc.vision.ee.ethz.ch/benchmarks#semanticSegmentation)—**72.05 mIoU**—and the [Dark Zurich leaderboard](https://codalab.lisn.upsaclay.fr/competitions/3783#results)—**63.91 mIoU**. See below for training configurations.
+
 <img src="./docs/method.png" width="900"/>
 
 ## Abstract
@@ -26,7 +28,7 @@ Refign consists of two steps:
 (1) aligning the normal-condition image to the corresponding adverse-condition image using an uncertainty-aware dense matching network, and
 (2) refining the adverse prediction with the normal prediction using an adaptive label correction mechanism.
 We design custom modules to streamline both steps and set the new state of the art for domain-adaptive semantic segmentation on several adverse-condition benchmarks, including ACDC and Dark Zurich.
-The approach introduces no extra training parameters, minimal computational overhead---during training only---and can be used as a drop-in extension to improve any given self-training-based UDA method.
+The approach introduces no extra training parameters, minimal computational overhead—during training only—and can be used as a drop-in extension to improve any given self-training-based UDA method.
 
 
 ## Usage
@@ -217,26 +219,29 @@ Before running the code, download and extract the corresponding datasets to the 
 </details>
 
 
-### Pretrained Models
+### Pretrained Models and Results
 
 We provide pretrained models of both UDA and alignment networks.
+Note that the UAWarpC checkpoint is needed to train Refign. To avoid config file edits, save it to `./pretrained_models/`.
+To facilitate qualitative segmentation comparisons, validation set predictions of Refign can be directly downloaded. Starred models use Cityscapes pretrained weights in the backbone, the others ImageNet pretrained.
 
 #### UDA
-- [Refign](https://data.vision.ee.ethz.ch/brdavid/refign/refign_acdc.ckpt) -- Cityscapes-->ACDC, 65.5 mIoU
-- [Refign](https://data.vision.ee.ethz.ch/brdavid/refign/refign_darkzurich.ckpt) -- Cityscapes-->DarkZurich, 56.2 mIoU
-- [Refign](https://data.vision.ee.ethz.ch/brdavid/refign/refign_robotcar.ckpt) -- Cityscapes-->RobotCar, 60.5 mIoU
+
+| Model         | Task           | Test Set       | Test Score    | Config      |  Checkpoint    |   Predictions  |
+|---------------|----------------|-----------------|-----------------|------------|----------------|------------|
+| Refign-DAFormer | Cityscapes→ACDC | ACDC test | 65.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_acdc.ckpt) | [ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC_refign_daformer.zip) 
+| Refign-HRDA* | Cityscapes→ACDC | ACDC test | 72.1 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_hrda_star.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_hrda_star_acdc.ckpt) | [ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC_refign_hrda_star.zip)
+|||||||
+| Refign-DAFormer | Cityscapes→Dark Zurich | Dark Zurich test | 56.2 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_darkzurich.ckpt) | [Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich_refign_daformer.zip)
+| Refign-HRDA* | Cityscapes→Dark Zurich | Dark Zurich test | 63.9 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_hrda_star.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_hrda_star_darkzurich.ckpt) | [Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich_refign_hrda_star.zip)
+|||||||
+| Refign-DAFormer | Cityscapes→RobotCar | RobotCar Seg. test       | 60.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_robotcar/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_robotcar.ckpt)  | [RobotCar val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_RobotCar_refign_daformer.zip)
 
 #### Alignment
-- [UAWarpC](https://data.vision.ee.ethz.ch/brdavid/refign/uawarpc_megadepth.ckpt)  -- MegaDepth
+| Model         | Task           | Test Set       | Score    | Config      |  Checkpoint    |
+|---------------|----------------|-----------------|-----------------|------------|----------------|
+| UAWarpC | MegaDepth Dense Matching | RobotCar Matching test | 36.8 PCK-5 | [stage1](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage1.yaml), [stage2](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage2.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/uawarpc_megadepth.ckpt) | 
 
-Note that the UAWarpC checkpoint is needed to train Refign. To avoid config file edits, save it to `./pretrained_models/`.
-
-### Qualitative Refign Predictions
-
-To facilitate qualitative comparisons, validation set predictions of Refign can be directly downloaded:
-- [Refign on ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC.zip)
-- [Refign on Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich.zip)
-- [Refign on RobotCar val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_RobotCar.zip)
 
 ### Refign Training
 
@@ -246,7 +251,7 @@ Enter the path to the UAWarpC model for `model.init_args.alignment_head.init_arg
 To train Refign on ACDC (single GPU, with AMP) use the following command:
 
 ```bash
-python tools/run.py fit --config configs/cityscapes_acdc/refign_daformer.yaml --trainer.gpus 1 --trainer.precision 16
+python tools/run.py fit --config configs/cityscapes_acdc/refign_hrda_star.yaml --trainer.gpus 1 --trainer.precision 16
 ```
 
 Similar config files are available for Dark Zurich and RobotCar.
@@ -258,7 +263,7 @@ As mentioned in the previous section, modify the config file by adding the UAWar
 To evaluate Refign e.g. on the ACDC validation set, use the following command:
 
 ```bash
-python tools/run.py test --config configs/cityscapes_acdc/refign_daformer.yaml --ckpt_path /path/to/trained/model --trainer.gpus 1
+python tools/run.py test --config configs/cityscapes_acdc/refign_hrda_star.yaml --ckpt_path /path/to/trained/model --trainer.gpus 1
 ```
 
 We also provide pretrained models, which can be downloaded from the link above. To evaluate them, simply provide them as the argument `--ckpt_path`.
@@ -266,7 +271,7 @@ We also provide pretrained models, which can be downloaded from the link above. 
 To get test set scores for ACDC and DarkZurich, predictions are evaluated on the respective evaluation servers: [ACDC](https://acdc.vision.ee.ethz.ch/submit) and [DarkZurich](https://codalab.lisn.upsaclay.fr/competitions/3783).
 To create and save test predictions for e.g. ACDC, use this command:
 ```bash
-python tools/run.py predict --config configs/cityscapes_acdc/refign_daformer.yaml --ckpt_path /path/to/trained/model --trainer.gpus 1
+python tools/run.py predict --config configs/cityscapes_acdc/refign_hrda_star.yaml --ckpt_path /path/to/trained/model --trainer.gpus 1
 ```
 
 ### UAWarpC Training
