@@ -177,8 +177,8 @@ Before running the code, download and extract the corresponding datasets to the 
 <details>
   <summary>MegaDepth</summary>
   
-  We use the version provided by the [D2-Net repo](https://github.com/mihaidusmanu/d2-net). Download it with [this link](https://drive.google.com/open?id=1hxpOsqOZefdrba_BqnW490XpNX_LgXPB).
-
+  For training, we use the version provided by the [D2-Net repo](https://github.com/mihaidusmanu/d2-net). Follow their instructions for downloading and preprocessing the dataset.
+  
   For testing, we use the split provided by [RANSAC-Flow here](https://github.com/XiSHEN0220/RANSAC-Flow/tree/master/evaluation/evalCorr).
   The directories `MegaDepth_Train`, `MegaDepth_Train_Org`, and `Val` can be removed.
 
