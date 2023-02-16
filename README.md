@@ -15,7 +15,7 @@
 
 This repository provides the official code for the WACV 2023 paper [Refign: Align and Refine for Adaptation of Semantic Segmentation to Adverse Conditions](https://arxiv.org/abs/2207.06825). The code is organized using [PyTorch Lightning](https://github.com/Lightning-AI/lightning). 
 
-🔥 Applied on top of [HRDA](https://github.com/lhoyer/HRDA), Refign ranks #1 on both the [ACDC leaderboard](https://acdc.vision.ee.ethz.ch/benchmarks#semanticSegmentation)—**72.05 mIoU**—and the [Dark Zurich leaderboard](https://codalab.lisn.upsaclay.fr/competitions/3783#results)—**63.91 mIoU**. See below for training configurations.
+🔥 [September 2, 2022] Applied on top of [HRDA](https://github.com/lhoyer/HRDA), Refign ranks #1 on both the [ACDC leaderboard](https://acdc.vision.ee.ethz.ch/benchmarks#semanticSegmentation)—**72.05 mIoU**—and the [Dark Zurich leaderboard](https://codalab.lisn.upsaclay.fr/competitions/3783#results)—**63.91 mIoU**. See below for training configurations.
 
 <img src="./docs/method.png" width="900"/>
 
@@ -177,8 +177,8 @@ Before running the code, download and extract the corresponding datasets to the 
 <details>
   <summary>MegaDepth</summary>
   
-  For training, we use the version provided by the [D2-Net repo](https://github.com/mihaidusmanu/d2-net). Follow their instructions for downloading and preprocessing the dataset.
-  
+  We use the version provided by the [D2-Net repo](https://github.com/mihaidusmanu/d2-net). Download it with [this link](https://drive.google.com/open?id=1hxpOsqOZefdrba_BqnW490XpNX_LgXPB).
+
   For testing, we use the split provided by [RANSAC-Flow here](https://github.com/XiSHEN0220/RANSAC-Flow/tree/master/evaluation/evalCorr).
   The directories `MegaDepth_Train`, `MegaDepth_Train_Org`, and `Val` can be removed.
 
@@ -297,6 +297,14 @@ python tools/run.py test --config configs/megadepth/uawarpc_evalonly.yaml --ckpt
 ```
 
 We also provide a pretrained model, which can be downloaded from the link above. To test it, simply provide it as the argument `--ckpt_path`.
+
+
+## Local Correlation
+
+Local correlation is implemented through [this custom CUDA extension](https://github.com/ClementPinard/Pytorch-Correlation-extension). By default the extension is built just in time. In case there are problems with this mechanism, the extension can be alternatively pre-installed in the environment (see also the README of the linked repo):
+```bash
+pip install spatial-correlation-sampler
+```
 
 
 ## How to Add Refign to your Self-Training UDA Code
