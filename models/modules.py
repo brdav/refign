@@ -57,7 +57,6 @@ class ConvBNReLU(nn.Module):
 
 
 class MLP(nn.Module):
-    """Linear Embedding."""
 
     def __init__(self, input_dim=2048, embed_dim=768):
         super().__init__()
@@ -70,25 +69,15 @@ class MLP(nn.Module):
 
 
 class BasicBlock(nn.Module):
-    """BasicBlock for ResNet.
-    Args:
-        in_channels (int): Input channels of this block.
-        out_channels (int): Output channels of this block.
-        expansion (int): The ratio of ``out_channels/mid_channels`` where
-            ``mid_channels`` is the output channels of conv1. This is a
-            reserved argument in BasicBlock and should always be 1. Default: 1.
-        stride (int): stride of the block. Default: 1
-        dilation (int): dilation of convolution. Default: 1
-        downsample (nn.Module, optional): downsample operation on identity
-            branch. Default: None.
-        style (str): `pytorch` or `caffe`. It is unused and reserved for
-            unified API with Bottleneck.
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
-            memory while slowing down the training speed.
-        conv_cfg (dict, optional): dictionary to construct and config conv
-            layer. Default: None
-        norm_cfg (dict): dictionary to construct and config norm layer.
-            Default: dict(type='BN')
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) OpenMMLab. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/open-mmlab/mmsegmentation.
+    ---------------------------------------------------------------------------
+    
+    BasicBlock for ResNet.
     """
 
     expansion = 1
@@ -158,25 +147,15 @@ class BasicBlock(nn.Module):
 
 
 class Bottleneck(nn.Module):
-    """Bottleneck block for ResNet.
-    Args:
-        in_channels (int): Input channels of this block.
-        out_channels (int): Output channels of this block.
-        expansion (int): The ratio of ``out_channels/mid_channels`` where
-            ``mid_channels`` is the input/output channels of conv2. Default: 4.
-        stride (int): stride of the block. Default: 1
-        dilation (int): dilation of convolution. Default: 1
-        downsample (nn.Module, optional): downsample operation on identity
-            branch. Default: None.
-        style (str): ``"pytorch"`` or ``"caffe"``. If set to "pytorch", the
-            stride-two layer is the 3x3 conv layer, otherwise the stride-two
-            layer is the first 1x1 conv layer. Default: "pytorch".
-        with_cp (bool): Use checkpoint or not. Using checkpoint will save some
-            memory while slowing down the training speed.
-        conv_cfg (dict, optional): dictionary to construct and config conv
-            layer. Default: None
-        norm_cfg (dict): dictionary to construct and config norm layer.
-            Default: dict(type='BN')
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) OpenMMLab. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/open-mmlab/mmsegmentation.
+    ---------------------------------------------------------------------------
+    
+    Bottleneck block for ResNet.
     """
 
     expansion = 4
@@ -297,6 +276,13 @@ class LocalFeatureCorrelationLayer(nn.Module):
 
 class GlobalFeatureCorrelationLayer(nn.Module):
     """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+
     Implementation of the global feature correlation layer
     Source and query, as well as target and reference refer to the same images.
     """
@@ -407,6 +393,14 @@ class GlobalFeatureCorrelationLayer(nn.Module):
 
 
 class OpticalFlowEstimatorResidualConnection(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self, in_channels, out_channels=2, batch_norm=True, output_x=False, extra_bias='auto'):
         super().__init__()
@@ -450,6 +444,14 @@ class OpticalFlowEstimatorResidualConnection(nn.Module):
 
 
 class RefinementModule(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self, in_channels, out_channels=2, batch_norm=True, extra_bias='auto'):
         super().__init__()
@@ -476,6 +478,14 @@ class RefinementModule(nn.Module):
 
 
 class UncertaintyModule(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  in_channels,
@@ -552,7 +562,17 @@ class UncertaintyModule(nn.Module):
 
 
 class DropPath(nn.Module):
-    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) OpenMMLab. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/open-mmlab/mmsegmentation.
+    ---------------------------------------------------------------------------
+    
+    Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
+    Following the implementation
+    https://github.com/rwightman/pytorch-image-models/blob/a2727c1bf78ba0d7b5727f5f95e37fb7f8866b1f/timm/models/layers/drop.py  # noqa: E501
     """
 
     def __init__(self, drop_prob: float = 0., scale_by_keep: bool = True):
@@ -565,13 +585,6 @@ class DropPath(nn.Module):
 
     @staticmethod
     def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
-        """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
-        This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
-        the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
-        See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
-        changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
-        'survival rate' as the argument.
-        """
         if drop_prob == 0. or not training:
             return x
         keep_prob = 1 - drop_prob

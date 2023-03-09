@@ -1,9 +1,8 @@
-# Obtained from: https://github.com/NVlabs/SegFormer
-# ---------------------------------------------------------------
 # Copyright (c) 2021, NVIDIA Corporation. All rights reserved.
 #
-# This work is licensed under the NVIDIA Source Code License
-# ---------------------------------------------------------------
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/NVlabs/SegFormer.
+#
 import collections.abc
 import math
 import os

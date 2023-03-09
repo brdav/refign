@@ -159,6 +159,14 @@ class Cityscapes(torch.utils.data.Dataset):
 
     @staticmethod
     def get_rcs_class_probs(data_root, temperature):
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        """
         with open(os.path.join(data_root, 'sample_class_stats.json'), 'r') as of:
             sample_class_stats = json.load(of)
         overall_class_stats = {}

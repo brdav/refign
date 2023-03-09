@@ -1,4 +1,8 @@
-# Modified from https://github.com/PruneTruong/DenseMatching
+# Copyright (c) Prune Truong. All rights reserved.
+# 
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/PruneTruong/DenseMatching.
+#
 import torch
 import torch.nn as nn
 from torch.cuda.amp import autocast

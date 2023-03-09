@@ -1,4 +1,8 @@
-# credit: https://github.com/ClementPinard/Pytorch-Correlation-extension
+# Copyright (c) Clemend Pinard. All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/ClementPinard/Pytorch-Correlation-extension.
+#
 import torch
 from torch.autograd.function import once_differentiable
 from torch.cuda.amp import custom_bwd, custom_fwd

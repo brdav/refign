@@ -35,14 +35,23 @@ class HuberLoss(nn.Module):
 
 
 class MultiScaleFlowLoss(nn.Module):
-    """ Module for multi-scale matching loss computation.
-    The loss is computed at all estimated flow resolutions and weighted according to level_weights. """
+    """ 
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+
+    Module for multi-scale matching loss computation.
+    The loss is computed at all estimated flow resolutions and weighted according to level_weights. 
+    """
 
     def __init__(self, level_weights=None, loss_type='L1Loss', downsample_gt_flow=True, reduction='mean'):
         """
         Args:
             level_weights: weights to apply to computed loss at each level (from coarsest to finest pyramid level)
-            loss_function: actual loss computation module, used for all levels
+            loss_type: name of loss, used for all levels
             downsample_gt_flow: bool, downsample gt flow to estimated flow resolution? otherwise, the estimated flow
                                 of each level is instead up-sampled to ground-truth resolution for loss computation
         """
@@ -65,6 +74,7 @@ class MultiScaleFlowLoss(nn.Module):
         Args:
             gt_flow: ground-truth flow field, shape (b, 2, H, W)
             est_flow: estimated flow field, shape (b, 2, H, W)
+            est_uncert: estimated uncertainty field, shape (b, d, H, W)
             mask: valid mask, where the loss is computed. shape (b, H, W)
         """
 
@@ -146,17 +156,7 @@ class MultiScaleFlowLoss(nn.Module):
         return loss
 
     def forward(self, flow_output, gt_flow, mask=None):
-        """
-        Args:
-            network_output: network predictions, can either be a dictionary, where network_output['flow_estimates']
-                            is a list containing the estimated flow fields at all levels. or directly the list 
-                            of flow fields.
-            gt_flow: ground-truth flow field
-            mask: bool tensor, valid mask, 1 indicates valid pixels where the loss is computed.
-        Returns:
-            loss: computed loss
-            stats: dict with stats from the loss computation
-        """
+
         if not isinstance(flow_output, Sequence):
             flow_output = [flow_output]
 
@@ -190,6 +190,13 @@ class MultiScaleFlowLoss(nn.Module):
 
 class WBipathLoss(nn.Module):
     """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+
     Main module computing the W-bipath loss. The W-bipath constraints computes the flow composition from the
     target prime to the target image.
     """
@@ -200,9 +207,12 @@ class WBipathLoss(nn.Module):
         """
         Args:
             objective: final objective, like multi-scale EPE or L1 loss
-            loss_weight: weights used
+            reduction: reduction to apply on the loss
+            loss_weights: weights used
+            loss_type: name of used loss
+            downsample_gt_flow: whether to downsample the GT flow or upsamle the prediction
             detach_flow_for_warping: bool, prevent back-propagation through the flow used for warping.
-            compute_cyclic_consistency:
+            visibility_mask: whether to apply visibility mask
             alpha_1: hyper-parameter for the visibility mask
             alpha_2: hyper-parameter for the visibility mask
         """
@@ -245,17 +255,7 @@ class WBipathLoss(nn.Module):
 
     def forward(self, estimated_flow_target_prime_to_source,
                 estimated_flow_source_to_target, flow_map, mask_used, return_masks=False):
-        """
-        Args:
-            flow_map: corresponds to known flow relating the target prime image to the target
-            mask_used: mask indicating in which regions the flow_map is valid
-            estimated_flow_target_prime_to_source: list of estimated flows
-            estimated_flow_source_to_target: list of estimated flows
-        Returns:
-            loss_un: final loss
-            stats_un: stats from loss computation
-            output: dictionary containing some intermediate results, for example the composition flow.
-        """
+
         h, w = flow_map.shape[-2:]  # load_size of the gt flow, meaning load_size of the input images
 
         estimated_flow_target_prime_to_target_through_composition = []

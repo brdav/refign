@@ -1,4 +1,8 @@
-###### Modified from: https://github.com/vikolss/DACS  ###########
+# Copyright (c) 2020 vikolss. All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/vikolss/DACS.
+#
 import random
 
 import kornia

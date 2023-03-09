@@ -1,3 +1,8 @@
+# Copyright (c) Prune Truong. All rights reserved.
+# 
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/PruneTruong/DenseMatching.
+#
 import os
 from typing import Dict, List, Optional, Union, cast
 

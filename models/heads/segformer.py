@@ -1,3 +1,8 @@
+# Copyright (c) 2021, NVIDIA Corporation. All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/NVlabs/SegFormer.
+#
 from typing import List, Optional, Union
 
 import torch

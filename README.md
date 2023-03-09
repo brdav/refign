@@ -324,9 +324,9 @@ If you find this code useful in your research, please consider citing the paper:
 }
 ```
 
-## Credit
+## License
 
-The pretrained backbone weights and code are from [MMSegmentation](https://github.com/open-mmlab/mmsegmentation). DAFormer code is from the [original repo](https://github.com/lhoyer/DAFormer). Geometric matching code is from [this repo](https://github.com/PruneTruong/DenseMatching). Local correlation CUDA code is from [this repo](https://github.com/ClementPinard/Pytorch-Correlation-extension).
+This repository is released under the MIT license. However, care should be taken to adopt appropriate licensing for third-party code in this repository. Third-party code is marked accordingly.
 
 ## Contact
 

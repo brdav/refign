@@ -318,7 +318,15 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         return logits
 
     def slide_inference(self, img):
-        """Inference by sliding-window with overlap.
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        
+        Inference by sliding-window with overlap.
         If h_crop > h_img or w_crop > w_img, the small patch will be used to
         decode without padding.
         """
@@ -516,7 +524,14 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
 
     @torch.no_grad()
     def get_dacs_mix(self, images_trg, probs_trg, images_src, gt_src):
-
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        """
         # take first source images in batch
         src_images_bs = images_src.shape[0]
         trg_images_bs = images_trg.shape[0]
@@ -567,6 +582,14 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
         return mixed_img, mixed_lbl, trg_pseudo_weight
 
     def calc_feat_dist(self, img, gt, feat=None):
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        """
         assert self.enable_fdist
         with torch.no_grad():
             if self.use_hrda:
@@ -597,6 +620,14 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
 
     @staticmethod
     def masked_feat_dist(f1, f2, mask=None):
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        """
         feat_diff = f1 - f2
         pw_feat_dist = torch.norm(feat_diff, dim=1, p=2)
         if mask is not None:
@@ -609,6 +640,14 @@ class DomainAdaptationSegmentationModel(pl.LightningModule):
                               min_ratio,
                               n_classes,
                               ignore_index=255):
+        """
+        ---------------------------------------------------------------------------
+        Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+        This source code is licensed under the license found in the
+        LICENSE file in https://github.com/lhoyer/HRDA.
+        ---------------------------------------------------------------------------
+        """
         assert scale_factor > 1
         bs, orig_c, orig_h, orig_w = gt.shape
         assert orig_c == 1

@@ -1,5 +1,8 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-# Adapted from https://github.com/open-mmlab/mmclassification/tree/master/mmcls/models/backbones
+# 
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/open-mmlab/mmsegmentation.
+#
 import os
 from typing import Optional
 

@@ -7,7 +7,14 @@ import torch.nn as nn
 
 
 def extract_crop(img, crop_size, divisible=1):
-    """Randomly get a crop bounding box."""
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/lhoyer/HRDA.
+    ---------------------------------------------------------------------------
+    """
     img_h, img_w = img.shape[-2:]
     assert crop_size[0] > 0 and crop_size[1] > 0
     if img_h == crop_size[-2] and img_w == crop_size[-1]:
@@ -28,11 +35,27 @@ def extract_crop(img, crop_size, divisible=1):
 
 
 def hr_crop_slice(crop_box, scale):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/lhoyer/HRDA.
+    ---------------------------------------------------------------------------
+    """
     crop_y1, crop_y2, crop_x1, crop_x2 = scale_box(crop_box, scale)
     return slice(crop_y1, crop_y2), slice(crop_x1, crop_x2)
 
 
 def scale_box(box, scale):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/lhoyer/HRDA.
+    ---------------------------------------------------------------------------
+    """
     y1, y2, x1, x2 = box
     y1 = int(y1 / scale)
     y2 = int(y2 / scale)
@@ -42,6 +65,14 @@ def scale_box(box, scale):
 
 
 def extract_slide_crop(img, crop_size):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/lhoyer/HRDA.
+    ---------------------------------------------------------------------------
+    """
     h_stride, w_stride = [e // 2 for e in crop_size]
     h_crop, w_crop = crop_size
     h_img, w_img = img.shape[-2:]
@@ -76,7 +107,7 @@ def hrda_backbone(self, head_os: int, is_teacher: bool = False) -> Callable:
 
                 # lr input
                 lr_x = nn.functional.interpolate(
-                    x, scale_factor=0.5, mode='bilinear', align_corners=False)  # TODO: try anti alias
+                    x, scale_factor=0.5, mode='bilinear', align_corners=False)
 
                 # hr input
                 crop_size = lr_x.shape[-2:]
@@ -86,7 +117,7 @@ def hrda_backbone(self, head_os: int, is_teacher: bool = False) -> Callable:
             else:
                 # lr input
                 lr_x = nn.functional.interpolate(
-                    x, scale_factor=0.5, mode='bilinear', align_corners=False)  # TODO: try anti alias
+                    x, scale_factor=0.5, mode='bilinear', align_corners=False)
 
                 # hr input
                 crop_size = lr_x.shape[-2:]

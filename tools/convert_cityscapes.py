@@ -1,6 +1,8 @@
-# Obtained from: https://github.com/open-mmlab/mmsegmentation/tree/v0.16.0
-# and https://github.com/lhoyer/DAFormer
-
+# Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/lhoyer/DAFormer.
+#
 import argparse
 import json
 import os

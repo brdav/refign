@@ -75,41 +75,31 @@ def imresize(img, size, interpolation='bilinear'):
 
 
 def elastic_transform(shape, sigma, alpha, get_flow=False, approximate=True, device='cpu'):
-    """ Apply an elastic distortion to the image
+    """ 
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    
+    Apply an elastic distortion to the image
     https://github.com/albu/albumentations
-    Parameters:
-    sigma_params: sigma can vary between max(img.shape) * sigma_params[0] and
-                    max(img.shape) * (sigma_params[0] + sigma_params[1])
-    alpha_params: alpha can vary between max(img.shape) * alpha_params[0] and
-                    max(img.shape) * (alpha_params[0] + alpha_params[1])
     """
     shape = shape[:2]
     [height, width] = shape
 
     # Create the grid
     if approximate:
-        # adapted from OpenCV: https://github.com/opencv/opencv/blob/5cc154147f749c0d9ac7a32e4b12aa7469b817c3/modules/imgproc/src/smooth.dispatch.cpp#L289
-        # k = int(max(round(sigma * 8) + 1, 1))
-        # kx = min(k, width)
-        # ky = min(k, height)
-        # # make it odd
-        # kx = math.ceil(kx / 2) * 2 - 1
-        # ky = math.ceil(ky / 2) * 2 - 1
-        # Approximate computation smooth displacement map with a large enough kernel.
-        # On large images (512+) this is approximately 2X times faster
         dx = torch.rand(height, width, dtype=torch.float,
                         device=device).numpy() * 2 - 1
         cv2.GaussianBlur(dx, (0, 0), sigma, dst=dx)
-        # dx = torchvision.transforms.functional.gaussian_blur(
-        #     dx.unsqueeze(0), kernel_size=[kx, ky], sigma=sigma).squeeze(0)
         dx = torch.from_numpy(dx)
         dx *= alpha
 
         dy = torch.rand(height, width, dtype=torch.float,
                         device=device).numpy() * 2 - 1
         cv2.GaussianBlur(dy, (0, 0), sigma, dst=dy)
-        # dy = torchvision.transforms.functional.gaussian_blur(
-        #     dy.unsqueeze(0), kernel_size=[kx, ky], sigma=sigma).squeeze(0)
         dy = torch.from_numpy(dy)
         dy *= alpha
     else:
@@ -349,13 +339,6 @@ class RandomCrop(nn.Module):
 
     @staticmethod
     def get_params(img_size, output_size):
-        """Get parameters for ``crop`` for a random crop.
-        Args:
-            img (PIL Image or Tensor): Image to be cropped.
-            output_size (tuple): Expected output size of the crop.
-        Returns:
-            tuple: params (i, j, h, w) to be passed to ``crop`` for random crop.
-        """
         h, w = img_size
         th, tw = output_size
 
@@ -588,6 +571,14 @@ class PadBottomRight(nn.Module):
 
 
 class RandomAffine(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  apply_keys='all',
@@ -702,6 +693,14 @@ class RandomAffine(nn.Module):
 
 
 class RandomHomography(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  apply_keys='all',
@@ -823,6 +822,14 @@ class RandomHomography(nn.Module):
 
 
 class RandomTPS(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  apply_keys='all',
@@ -1026,6 +1033,14 @@ class RandomTPS(nn.Module):
 
 
 class RandomAffineTPS(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  apply_keys='all',
@@ -1151,6 +1166,14 @@ class RandomAffineTPS(nn.Module):
 
 
 class RandomElastic(nn.Module):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     def __init__(self,
                  apply_keys='all',

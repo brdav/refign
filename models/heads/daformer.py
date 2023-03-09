@@ -1,3 +1,8 @@
+# Copyright (c) 2021-2022 ETH Zurich, Lukas Hoyer. All rights reserved.
+#
+# This source code is licensed under the license found in the
+# LICENSE file in https://github.com/lhoyer/DAFormer.
+#
 from typing import List, Optional, Union
 
 import torch
@@ -8,15 +13,7 @@ from .base import BaseHead
 
 
 class ASPPModule(nn.ModuleList):
-    """Atrous Spatial Pyramid Pooling (ASPP) Module.
-
-    Args:
-        dilations (tuple[int]): Dilation rate of each layer.
-        in_channels (int): Input channels.
-        channels (int): Channels after modules, before conv_seg.
-        conv_cfg (dict|None): Config of conv layers.
-        norm_cfg (dict|None): Config of norm layers.
-        act_cfg (dict): Config of activation layers.
+    """ Atrous Spatial Pyramid Pooling (ASPP) Module.
     """
 
     def __init__(self, dilations, in_channels, channels, norm_layer, activation_layer):
@@ -47,7 +44,7 @@ class ASPPModule(nn.ModuleList):
 
 
 class DepthwiseSeparableASPPModule(ASPPModule):
-    """Atrous Spatial Pyramid Pooling (ASPP) Module with depthwise separable
+    """ Atrous Spatial Pyramid Pooling (ASPP) Module with depthwise separable
     conv."""
 
     def __init__(self, **kwargs):

@@ -33,6 +33,14 @@ class MyMetricCollection(torchmetrics.MetricCollection):
 
 
 class SparseEPE(torchmetrics.Metric):
+    """
+    ---------------------------------------------------------------------------
+    Copyright (c) Prune Truong. All rights reserved.
+    
+    This source code is licensed under the license found in the
+    LICENSE file in https://github.com/PruneTruong/DenseMatching.
+    ---------------------------------------------------------------------------
+    """
 
     full_state_update: bool = False
 

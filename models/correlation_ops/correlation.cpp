@@ -1,3 +1,8 @@
+// Copyright (c) Clemend Pinard. All rights reserved.
+//
+// This source code is licensed under the license found in the
+// LICENSE file in https://github.com/ClementPinard/Pytorch-Correlation-extension.
+//
 #include <torch/extension.h>
 using namespace torch;
 
