@@ -219,35 +219,43 @@ Before running the code, download and extract the corresponding datasets to the 
 </details>
 
 
-### Pretrained Models and Results
+### Download the Pretrained Weights
 
-We provide pretrained models of both UDA and alignment networks.
-Note that the UAWarpC checkpoint is needed to train Refign. To avoid config file edits, save it to `./pretrained_models/`.
+The following pretrained weights are required for Refign. Save them to `./pretrained_models/`.
+
+1. UAWarpC checkpoint, download it [here](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/uawarpc_megadepth.ckpt).
+
+2. ImageNet-pretrained MiT weights (`mit_b5.pth`), download them from the [SegFormer repository](https://github.com/NVlabs/SegFormer).
+
+3. Cityscapes-pretrained SegFormer weights (`segformer.b5.1024x1024.city.160k.pth`), download them from the [SegFormer repository](https://github.com/NVlabs/SegFormer).
+
+
+### Trained Models and Results
+
+We provide trained models of both UDA and alignment networks.
 To facilitate qualitative segmentation comparisons, validation set predictions of Refign can be directly downloaded. Starred models use Cityscapes pretrained weights in the backbone, the others ImageNet pretrained.
 
 #### UDA
 
 | Model         | Task           | Test Set       | Test Score    | Config      |  Checkpoint    |   Predictions  |
 |---------------|----------------|-----------------|-----------------|------------|----------------|------------|
-| Refign-DAFormer | Cityscapes→ACDC | ACDC test | 65.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_acdc.ckpt) | [ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC_refign_daformer.zip) 
-| Refign-HRDA* | Cityscapes→ACDC | ACDC test | 72.1 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_hrda_star.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_hrda_star_acdc.ckpt) | [ACDC val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_ACDC_refign_hrda_star.zip)
+| Refign-DAFormer | Cityscapes→ACDC | ACDC test | 65.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_daformer.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/refign_daformer_acdc.ckpt) | [ACDC val](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/colored_preds_val_ACDC_refign_daformer.zip) 
+| Refign-HRDA* | Cityscapes→ACDC | ACDC test | 72.1 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_acdc/refign_hrda_star.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/refign_hrda_star_acdc.ckpt) | [ACDC val](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/colored_preds_val_ACDC_refign_hrda_star.zip)
 |||||||
-| Refign-DAFormer | Cityscapes→Dark Zurich | Dark Zurich test | 56.2 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_darkzurich.ckpt) | [Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich_refign_daformer.zip)
-| Refign-HRDA* | Cityscapes→Dark Zurich | Dark Zurich test | 63.9 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_hrda_star.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_hrda_star_darkzurich.ckpt) | [Dark Zurich val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_DarkZurich_refign_hrda_star.zip)
+| Refign-DAFormer | Cityscapes→Dark Zurich | Dark Zurich test | 56.2 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_daformer.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/refign_daformer_darkzurich.ckpt) | [Dark Zurich val](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/colored_preds_val_DarkZurich_refign_daformer.zip)
+| Refign-HRDA* | Cityscapes→Dark Zurich | Dark Zurich test | 63.9 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_darkzurich/refign_hrda_star.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/refign_hrda_star_darkzurich.ckpt) | [Dark Zurich val](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/colored_preds_val_DarkZurich_refign_hrda_star.zip)
 |||||||
-| Refign-DAFormer | Cityscapes→RobotCar | RobotCar Seg. test       | 60.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_robotcar/refign_daformer.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/refign_daformer_robotcar.ckpt)  | [RobotCar val](https://data.vision.ee.ethz.ch/brdavid/refign/colored_preds_val_RobotCar_refign_daformer.zip)
+| Refign-DAFormer | Cityscapes→RobotCar | RobotCar Seg. test       | 60.5 mIoU | [config](https://github.com/brdav/refign/blob/main/configs/cityscapes_robotcar/refign_daformer.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/refign_daformer_robotcar.ckpt)  | [RobotCar val](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/colored_preds_val_RobotCar_refign_daformer.zip)
 
 #### Alignment
 | Model         | Task           | Test Set       | Score    | Config      |  Checkpoint    |
 |---------------|----------------|-----------------|-----------------|------------|----------------|
-| UAWarpC | MegaDepth Dense Matching | RobotCar Matching test | 36.8 PCK-5 | [stage1](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage1.yaml), [stage2](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage2.yaml) | [model](https://data.vision.ee.ethz.ch/brdavid/refign/uawarpc_megadepth.ckpt) | 
+| UAWarpC | MegaDepth Dense Matching | RobotCar Matching test | 36.8 PCK-5 | [stage1](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage1.yaml), [stage2](https://github.com/brdav/refign/blob/main/configs/megadepth/uawarpc_stage2.yaml) | [model](https://www.research-collection.ethz.ch/bitstream/handle/20.500.11850/626140/uawarpc_megadepth.ckpt) | 
 
 
 ### Refign Training
 
-Make sure to first download the trained UAWarpC model with the link provided above.
-Enter the path to the UAWarpC model for `model.init_args.alignment_head.init_args.pretrained` in the config file you intend to run (or save the model to `./pretrained_models/`).
-
+Make sure to first download the necessary pretrained weights.
 To train Refign on ACDC (single GPU, with AMP) use the following command:
 
 ```bash
@@ -259,14 +267,14 @@ We also provide the config files for reproducing the ablation study in `configs/
 
 ### Refign Testing
 
-As mentioned in the previous section, modify the config file by adding the UAWarpC model path.
+Make sure to first download the necessary pretrained weights.
 To evaluate Refign e.g. on the ACDC validation set, use the following command:
 
 ```bash
 python tools/run.py test --config configs/cityscapes_acdc/refign_hrda_star.yaml --ckpt_path /path/to/trained/model --trainer.gpus 1
 ```
 
-We also provide pretrained models, which can be downloaded from the link above. To evaluate them, simply provide them as the argument `--ckpt_path`.
+We also provide trained models, which can be downloaded from the link above. To evaluate them, simply provide them as the argument `--ckpt_path`.
 
 To get test set scores for ACDC and DarkZurich, predictions are evaluated on the respective evaluation servers: [ACDC](https://acdc.vision.ee.ethz.ch/submit) and [DarkZurich](https://codalab.lisn.upsaclay.fr/competitions/3783).
 To create and save test predictions for e.g. ACDC, use this command:
@@ -327,7 +335,3 @@ If you find this code useful in your research, please consider citing the paper:
 ## License
 
 This repository is released under the MIT license. However, care should be taken to adopt appropriate licensing for third-party code in this repository. Third-party code is marked accordingly.
-
-## Contact
-
-For questions about the code or paper, feel free to contact me ([send email](mailto:brdavid@vision.ee.ethz.ch)).
